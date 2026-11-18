@@ -1,4 +1,4 @@
-name = "onlyheads-board"
+﻿name = "onlyheads-board"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 
@@ -8,8 +8,8 @@ compatibility_date = "2025-01-01"
 #   npx wrangler deploy
 [[kv_namespaces]]
 binding = "BOARD"
-id = "REPLACE_WITH_YOUR_KV_ID"
+id = "57b36a74e93f419f8d854f8e0ad27d62"
 
 [vars]
 # Lock this to your site so other pages cannot post scores.
-ALLOWED_ORIGIN = "https://jason10191019999.github.io"
+ALLOWED_ORIGIN = "https://jason10191019999.github.io,http://127.0.0.1:5173"

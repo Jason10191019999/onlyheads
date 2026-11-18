@@ -2,17 +2,25 @@
 // Storage: one KV namespace bound as BOARD. Deploy steps in README.md.
 //
 // GET  /scores  -> [{ name, score, tier, headshots, at }, ...] sorted, top 50
-// POST /scores  -> { name, score, tier, headshots, at }  (validated, capped)
+// POST /scores  -> { name, score, tier, headshots }  (validated, capped)
 
 const MAX_ENTRIES = 50
 const MAX_SCORE = 100 * 400 // 400 headshots in 60s is already impossible; anything above is fake
 const MAX_NAME = 12
 
-function cors(env) {
+/** ALLOWED_ORIGIN may be one origin or a comma separated list. */
+function corsHeaders(request, env) {
+  const allowed = String(env.ALLOWED_ORIGIN || '*')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+  const origin = request.headers.get('origin') || ''
+  const match = allowed.includes('*') ? '*' : allowed.find((value) => value === origin)
   return {
-    'access-control-allow-origin': env.ALLOWED_ORIGIN || '*',
+    'access-control-allow-origin': match || allowed[0] || '*',
     'access-control-allow-headers': 'content-type',
     'access-control-allow-methods': 'GET,POST,OPTIONS',
+    vary: 'origin',
     'cache-control': 'no-store',
   }
 }
@@ -35,7 +43,7 @@ function sanitizeName(value) {
 
 export default {
   async fetch(request, env) {
-    const headers = cors(env)
+    const headers = corsHeaders(request, env)
     const url = new URL(request.url)
 
     if (request.method === 'OPTIONS') return new Response(null, { headers })

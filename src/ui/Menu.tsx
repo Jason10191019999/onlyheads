@@ -330,26 +330,22 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
           </div>
         </section>
 
-        {globalBoardEnabled && (
+        {global && global.length > 0 && (
           <section className="block">
             <h2 className="block-title">{t('globalBoard')}</h2>
             <div className="board-card">
-              {global === null ? (
-                <p className="muted">{t('boardOffline')}</p>
-              ) : (
-                <ol className="board">
-                  {global.slice(0, 10).map((entry, index) => (
-                    <li key={`${entry.at}-${index}`} className={index === 0 ? 'board-row top' : 'board-row'}>
-                      <span className="board-rank mono">{index + 1}</span>
-                      <span className="board-name">{entry.name}</span>
-                      <span className="board-meta mono">
-                        {entry.headshots} {t('heads')}
-                      </span>
-                      <span className="board-score mono">{entry.score.toLocaleString('en-US')}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
+              <ol className="board">
+                {global.slice(0, 10).map((entry, index) => (
+                  <li key={`${entry.at}-${index}`} className={index === 0 ? 'board-row top' : 'board-row'}>
+                    <span className="board-rank mono">{index + 1}</span>
+                    <span className="board-name">{entry.name}</span>
+                    <span className="board-meta mono">
+                      {entry.headshots} {t('heads')}
+                    </span>
+                    <span className="board-score mono">{entry.score.toLocaleString('en-US')}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
           </section>
         )}
