@@ -330,10 +330,11 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
           </div>
         </section>
 
-        {global && global.length > 0 && (
+        {global && (
           <section className="block">
             <h2 className="block-title">{t('globalBoard')}</h2>
             <div className="board-card">
+              {global.length === 0 && <p className="muted">{t('noGlobal')}</p>}
               <ol className="board">
                 {global.slice(0, 10).map((entry, index) => (
                   <li key={`${entry.at}-${index}`} className={index === 0 ? 'board-row top' : 'board-row'}>
