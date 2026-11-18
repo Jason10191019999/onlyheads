@@ -76,6 +76,18 @@ src/
 
 计分与命中都是纯函数,不依赖 DOM。
 
+## 反馈 / Feedback
+
+欢迎所有人提意见,不管是 bug、手感问题还是想加的功能:
+
+- **发现 bug / 想加功能** → 直接开 [Issue](../../issues)
+- **想改代码** → 欢迎提交 Pull Request
+- **聊数值、灵敏度、手感** → 去 [Discussions](../../discussions)
+
+提 Issue 时尽量带上:你的灵敏度/DPI、难度档、靶数设置,以及"当时发生了什么 + 你期望发生什么"。
+
+Everyone is welcome to give feedback — bugs, feel issues, or feature ideas. Open an issue, start a discussion, or send a pull request.
+
 ## 已知限制
 
 - 桌面 Chrome / Edge 最佳;Firefox 原始输入不稳定;Safari 未验证
