@@ -34,7 +34,7 @@ import {
   type WeaponConfig,
 } from '../game/config'
 import { clamp, dirFromYawPitch } from '../game/math'
-import { mulberry32, newSeed } from '../game/rng'
+import { dailySeed, mulberry32, newSeed } from '../game/rng'
 import { RoundScorer } from '../game/scoring'
 import { radPerCount } from '../game/sensitivity'
 import { applySpread, spreadDegrees } from '../game/spread'
@@ -61,7 +61,7 @@ export class RangeEngine {
   private readonly particles: Particles
   private readonly input: PointerInput
   private readonly scorer: RoundScorer
-  private readonly rng = mulberry32(newSeed())
+  private readonly rng: () => number
   private readonly weaponId: WeaponId
   private readonly weaponCfg: WeaponConfig
   private readonly crosshair: HTMLDivElement
@@ -103,6 +103,7 @@ export class RangeEngine {
 
   constructor(opts: RangeOptions) {
     this.opts = opts
+    this.rng = mulberry32(opts.settings.daily ? dailySeed() : newSeed())
     this.container = opts.container
     this.weaponId = opts.settings.weapon
     this.weaponCfg = WEAPONS[opts.settings.weapon]
@@ -140,7 +141,12 @@ export class RangeEngine {
     this.particles = new Particles(this.scene)
 
     this.crosshair = document.createElement('div')
-    this.crosshair.className = 'crosshair-dot'
+    this.crosshair.className = 'crosshair'
+    for (const part of ['up', 'down', 'left', 'right', 'dot']) {
+      const bar = document.createElement('i')
+      bar.className = `xh-${part}`
+      this.crosshair.appendChild(bar)
+    }
     this.hitmarker = document.createElement('div')
     this.hitmarker.className = 'hitmarker'
     for (let i = 0; i < 4; i += 1) {
@@ -504,7 +510,15 @@ export class RangeEngine {
       if (Math.abs(d.root.position.x - x) < MIN_TARGET_GAP) return false
     }
     const moving = this.opts.settings.moving
-    const dummy = new Dummy({ id: this.nextId++, slot, moving, now, jitterX, jitterZ })
+    const dummy = new Dummy({
+      id: this.nextId++,
+      slot,
+      moving,
+      now,
+      jitterX,
+      jitterZ,
+      random: this.rng,
+    })
     this.dummies.push(dummy)
     this.scene.add(dummy.root)
     this.lastSlot = slot.id
@@ -952,7 +966,12 @@ export class RangeEngine {
   }
 
   private applyCrosshair(): void {
-    this.crosshair.style.setProperty('--xh-color', this.opts.settings.crosshairColor)
+    const s = this.opts.settings
+    this.crosshair.style.setProperty('--xh-color', s.crosshairColor)
+    this.crosshair.style.setProperty('--xh-len', `${s.crosshairSize}px`)
+    this.crosshair.style.setProperty('--xh-gap', `${s.crosshairGap}px`)
+    this.crosshair.style.setProperty('--xh-thick', `${s.crosshairThickness}px`)
+    this.crosshair.classList.toggle('dot-only', s.crosshairShape === 'dot')
   }
 
   // ---------------------------------------------------------------- input

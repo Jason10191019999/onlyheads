@@ -4,11 +4,18 @@ import RangeView from './ui/RangeView'
 import Results from './ui/Results'
 import { loadProfile, recordRound, recordScore, saveSettings } from './storage'
 import type { RoundResult, Settings } from './game/types'
+import { parseChallenge } from './game/share'
+import { globalBoardEnabled, submitGlobal } from './net/board'
 
 type Screen = 'menu' | 'range' | 'results'
 
 export default function App() {
-  const initial = useMemo(() => loadProfile(), [])
+  const initial = useMemo(() => {
+    const profile = loadProfile()
+    const challenge = parseChallenge(window.location.hash)
+    if (!challenge) return profile
+    return { ...profile, settings: { ...profile.settings, ...challenge } }
+  }, [])
   const [screen, setScreen] = useState<Screen>('menu')
   const [settings, setSettings] = useState<Settings>(initial.settings)
   const [rounds, setRounds] = useState(initial.rounds)
@@ -30,6 +37,17 @@ export default function App() {
     setRank(scored.rank)
     setBoard(scored.board)
     setRounds(recordRound(round))
+    if (globalBoardEnabled) {
+      void submitGlobal({
+        name: settings.playerName,
+        score: round.score,
+        tier: round.tier,
+        headshots: round.headshots,
+        accuracy: round.accuracy,
+        at: round.at,
+        weapon: round.weapon,
+      })
+    }
     setScreen('results')
   }
 
@@ -57,6 +75,7 @@ export default function App() {
         <Results
           result={result}
           rank={rank}
+          name={settings.playerName}
           lang={settings.lang}
           onReplay={() => setScreen('range')}
           onMenu={() => setScreen('menu')}

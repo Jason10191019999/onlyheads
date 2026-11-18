@@ -139,6 +139,8 @@ export interface DummyOptions {
   jitterZ: number
   /** spawned by a body hit: clearing it earns nothing */
   isClone?: boolean
+  /** deterministic source for phase/relocate timing (daily challenge) */
+  random?: () => number
 }
 
 export interface Hit {
@@ -166,7 +168,7 @@ export class Dummy {
   private readonly targetZ: number
   private readonly startAt: number
   private readonly moving: boolean
-  private readonly phase = Math.random() * Math.PI * 2
+  private readonly phase: number
   private splitAt = 0
   private readonly bornAt: number
   private upperMeshes: THREE.Mesh[] = []
@@ -180,6 +182,8 @@ export class Dummy {
     this.isClone = opts.isClone === true
     this.slot = slot
     this.moving = opts.moving
+    const rand = opts.random ?? Math.random
+    this.phase = rand() * Math.PI * 2
     this.targetX = slot.x + opts.jitterX
     this.targetZ = slot.z + opts.jitterZ
     this.startX = slot.hiddenX ?? this.targetX
@@ -201,7 +205,7 @@ export class Dummy {
     if (this.isClone) {
       this.tintAsPenalty()
     } else {
-      this.relocateAt = now + RELOCATE_MIN_MS + Math.random() * (RELOCATE_MAX_MS - RELOCATE_MIN_MS)
+      this.relocateAt = now + RELOCATE_MIN_MS + rand() * (RELOCATE_MAX_MS - RELOCATE_MIN_MS)
     }
   }
 

@@ -1,10 +1,12 @@
 import { useMemo } from 'react'
 import type { Lang, RoundResult } from '../game/types'
 import { translator } from '../i18n'
+import { saveResultCard } from './shareImage'
 
 interface Props {
   result: RoundResult
   rank: number
+  name: string
   lang: Lang
   onReplay: () => void
   onMenu: () => void
@@ -13,7 +15,7 @@ interface Props {
 const pct = (value: number) => `${Math.round(value * 100)}%`
 const secs = (ms: number) => `${(ms / 1000).toFixed(2)}s`
 
-export default function Results({ result, rank, lang, onReplay, onMenu }: Props) {
+export default function Results({ result, rank, name, lang, onReplay, onMenu }: Props) {
   const t = useMemo(() => translator(lang), [lang])
 
   return (
@@ -37,6 +39,26 @@ export default function Results({ result, rank, lang, onReplay, onMenu }: Props)
         </div>
 
         <div className="results-actions">
+          <button
+            type="button"
+            className="btn"
+            onClick={() =>
+              saveResultCard(
+                result,
+                name,
+                {
+                  score: t('score'),
+                  heads: t('heads'),
+                  bodies: t('bodies'),
+                  firstShot: t('firstShot'),
+                  accuracy: t('accuracy'),
+                },
+                `${window.location.origin}${window.location.pathname}`,
+              )
+            }
+          >
+            {t('saveCard')}
+          </button>
           <button type="button" className="btn primary" onClick={onReplay}>
             {t('replay')}
           </button>

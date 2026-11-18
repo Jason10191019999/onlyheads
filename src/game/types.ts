@@ -56,6 +56,14 @@ export interface Settings {
   sound: boolean
   lang: Lang
   crosshairColor: string
+  crosshairShape: 'dot' | 'cross'
+  /** length of one arm, px */
+  crosshairSize: number
+  /** distance between the dot and the arms, px */
+  crosshairGap: number
+  crosshairThickness: number
+  /** deterministic seed for the day, so everyone gets the same spawns */
+  daily: boolean
 }
 
 export interface HudState {

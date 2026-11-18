@@ -25,7 +25,17 @@ export const DEFAULT_SETTINGS: Settings = {
   volume: 0.6,
   sound: true,
   lang: 'en',
-  crosshairColor: '#ffb020',
+  crosshairColor: '#4be3d6',
+  crosshairShape: 'cross',
+  crosshairSize: 6,
+  crosshairGap: 3,
+  crosshairThickness: 2,
+  daily: false,
+}
+
+function clampRange(value: unknown, min: number, max: number, fallback: number): number {
+  if (!Number.isFinite(value)) return fallback
+  return Math.min(max, Math.max(min, Math.round(value as number)))
 }
 
 export function sanitizeName(value: unknown): string {
@@ -59,6 +69,11 @@ function normalize(raw: Partial<Settings> | undefined): Settings {
     crosshairColor: /^#[0-9a-f]{6}$/i.test(s.crosshairColor ?? '')
       ? (s.crosshairColor as string)
       : DEFAULT_SETTINGS.crosshairColor,
+    crosshairShape: s.crosshairShape === 'dot' ? 'dot' : 'cross',
+    crosshairSize: clampRange(s.crosshairSize, 2, 20, DEFAULT_SETTINGS.crosshairSize),
+    crosshairGap: clampRange(s.crosshairGap, 0, 16, DEFAULT_SETTINGS.crosshairGap),
+    crosshairThickness: clampRange(s.crosshairThickness, 1, 6, DEFAULT_SETTINGS.crosshairThickness),
+    daily: s.daily === true,
   }
 }
 

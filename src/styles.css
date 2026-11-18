@@ -681,18 +681,71 @@ button {
   border-color: var(--teal);
 }
 
-.crosshair-dot {
+.crosshair {
   position: absolute;
   left: 50%;
   top: 50%;
   z-index: 4;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--xh-color, #4be3d6);
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9);
+  width: 0;
+  height: 0;
   pointer-events: none;
+  --xh-color: #4be3d6;
+  --xh-len: 6px;
+  --xh-gap: 3px;
+  --xh-thick: 2px;
+}
+
+.crosshair i {
+  position: absolute;
+  display: block;
+  background: var(--xh-color);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.85);
+}
+
+.crosshair .xh-dot {
+  width: var(--xh-thick);
+  height: var(--xh-thick);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.crosshair .xh-up,
+.crosshair .xh-down {
+  width: var(--xh-thick);
+  height: var(--xh-len);
+  left: 0;
+  transform: translateX(-50%);
+}
+
+.crosshair .xh-up {
+  bottom: var(--xh-gap);
+}
+
+.crosshair .xh-down {
+  top: var(--xh-gap);
+}
+
+.crosshair .xh-left,
+.crosshair .xh-right {
+  height: var(--xh-thick);
+  width: var(--xh-len);
+  top: 0;
+  transform: translateY(-50%);
+}
+
+.crosshair .xh-left {
+  right: var(--xh-gap);
+}
+
+.crosshair .xh-right {
+  left: var(--xh-gap);
+}
+
+.crosshair.dot-only .xh-up,
+.crosshair.dot-only .xh-down,
+.crosshair.dot-only .xh-left,
+.crosshair.dot-only .xh-right {
+  opacity: 0;
 }
 
 .hitmarker {
@@ -1039,4 +1092,41 @@ button {
 
 .board-score {
   font-size: 15px;
+}
+
+.share-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0 4px;
+}
+
+.ghost {
+  padding: 7px 14px;
+  border: 1px solid var(--line);
+  background: rgba(10, 18, 26, 0.6);
+  color: var(--muted);
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  color: var(--teal);
+  border-color: var(--teal);
+}
+
+.color-input {
+  width: 54px;
+  height: 32px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  background: rgba(10, 18, 26, 0.85);
+  cursor: pointer;
+}
+
+.stepper button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }

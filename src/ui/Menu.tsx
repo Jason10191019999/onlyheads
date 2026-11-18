@@ -1,8 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MAX_PER_FLOOR, TIERS } from '../game/config'
 import { cmPer360, eDPI, formatCm } from '../game/sensitivity'
 import type { Lang, LeaderboardEntry, RoundResult, Settings, Tier, WeaponId } from '../game/types'
 import { translator } from '../i18n'
+import { challengeUrl } from '../game/share'
+import { todayKey } from '../game/rng'
+import { fetchGlobalBoard, globalBoardEnabled, type GlobalEntry } from '../net/board'
 
 interface Props {
   settings: Settings
@@ -17,6 +20,30 @@ const WEAPON_IDS: WeaponId[] = ['vandal', 'sheriff']
 
 export default function Menu({ settings, onChange, rounds, board, onStart }: Props) {
   const t = useMemo(() => translator(settings.lang), [settings.lang])
+  const [copied, setCopied] = useState(false)
+  const [global, setGlobal] = useState<GlobalEntry[] | null>(null)
+
+  useEffect(() => {
+    if (!globalBoardEnabled) return
+    let alive = true
+    fetchGlobalBoard().then((rows) => {
+      if (alive) setGlobal(rows)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const copyChallenge = async () => {
+    const link = challengeUrl(settings, window.location.origin, window.location.pathname)
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      window.prompt('Copy this link:', link)
+    }
+  }
   const recent = rounds.slice(0, 5)
 
   return (
@@ -84,6 +111,17 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
                 </div>
               </div>
             ))}
+            <div className="count-group">
+              <span className="count-label">{t('daily')} · {todayKey()}</span>
+              <button
+                type="button"
+                className={`switch ${settings.daily ? 'on' : ''}`}
+                onClick={() => onChange({ daily: !settings.daily })}
+                aria-label="daily challenge"
+              >
+                <span />
+              </button>
+            </div>
             <div className="count-group">
               <span className="count-label">{t('moving')}</span>
               <button
@@ -194,6 +232,69 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
                 </div>
               </div>
             </div>
+
+            <div className="panel">
+              <h2 className="block-title">{t('crosshair')}</h2>
+              <div className="field">
+                <label>{t('shape')}</label>
+                <div className="seg">
+                  {(['dot', 'cross'] as const).map((shape) => (
+                    <button
+                      key={shape}
+                      type="button"
+                      className={settings.crosshairShape === shape ? 'active' : ''}
+                      onClick={() => onChange({ crosshairShape: shape })}
+                    >
+                      {shape === 'dot' ? t('shapeDot') : t('shapeCross')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {(
+                [
+                  ['size', settings.crosshairSize, 2, 20] as const,
+                  ['gap', settings.crosshairGap, 0, 16] as const,
+                  ['thickness', settings.crosshairThickness, 1, 6] as const,
+                ]
+              ).map(([key, value, min, max]) => (
+                <div className="field" key={key}>
+                  <label>{t(key)}</label>
+                  <div className="stepper">
+                    <button
+                      type="button"
+                      aria-label="minus"
+                      disabled={value <= min}
+                      onClick={() =>
+                        onChange({ [`crosshair${key[0].toUpperCase()}${key.slice(1)}`]: Math.max(min, value - 1) })
+                      }
+                    >
+                      −
+                    </button>
+                    <span className="mono">{value}</span>
+                    <button
+                      type="button"
+                      aria-label="plus"
+                      disabled={value >= max}
+                      onClick={() =>
+                        onChange({ [`crosshair${key[0].toUpperCase()}${key.slice(1)}`]: Math.min(max, value + 1) })
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <div className="field">
+                <label htmlFor="xh-color">{t('color')}</label>
+                <input
+                  id="xh-color"
+                  className="color-input"
+                  type="color"
+                  value={settings.crosshairColor}
+                  onChange={(event) => onChange({ crosshairColor: event.target.value })}
+                />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -228,6 +329,36 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
             )}
           </div>
         </section>
+
+        {globalBoardEnabled && (
+          <section className="block">
+            <h2 className="block-title">{t('globalBoard')}</h2>
+            <div className="board-card">
+              {global === null ? (
+                <p className="muted">{t('boardOffline')}</p>
+              ) : (
+                <ol className="board">
+                  {global.slice(0, 10).map((entry, index) => (
+                    <li key={`${entry.at}-${index}`} className={index === 0 ? 'board-row top' : 'board-row'}>
+                      <span className="board-rank mono">{index + 1}</span>
+                      <span className="board-name">{entry.name}</span>
+                      <span className="board-meta mono">
+                        {entry.headshots} {t('heads')}
+                      </span>
+                      <span className="board-score mono">{entry.score.toLocaleString('en-US')}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </div>
+          </section>
+        )}
+
+        <div className="share-row">
+          <button type="button" className="ghost" onClick={copyChallenge}>
+            {copied ? t('copied') : t('copyChallenge')}
+          </button>
+        </div>
 
         <button type="button" className="start" onClick={onStart}>
           {t('start')}
