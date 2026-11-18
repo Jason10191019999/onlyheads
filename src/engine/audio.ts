@@ -84,16 +84,26 @@ export class GameAudio {
   }
 
   /**
-   * Headshot: a bright metallic ping, tuned to sit just above the gunshot so
-   * it reads as a separate event. Synthesised, not sampled.
+   * Headshot: six layers — a low thump for impact, a bright ping, a metallic
+   * ring for the tail and a click on top. Slight random detune per shot so a
+   * streak does not sound like a machine.
    */
   headshot(streak: number): void {
-    const lift = Math.min(streak, 6) * 30
-    this.tone(2380 + lift, 0.075, 'sine', 0.22, 2080 + lift)
-    this.tone(3560 + lift, 0.05, 'triangle', 0.1, 3220 + lift)
-    this.tone(1190, 0.05, 'sine', 0.05, 980)
-    this.noise(0.016, 0.1, 'bandpass', 4300, 1.6)
-    this.noise(0.055, 0.05, 'highpass', 2700)
+    const lift = Math.min(streak, 8) * 35
+    const detune = 0.99 + Math.random() * 0.02
+    const ping = (2500 + lift) * detune
+
+    // body of the hit
+    this.tone(150, 0.13, 'sine', 0.19, 62)
+    // main ping
+    this.tone(ping, 0.085, 'sine', 0.26, ping * 0.82)
+    // harmonic that gives it metal
+    this.tone(ping * 1.5, 0.055, 'triangle', 0.12, ping * 1.24)
+    // ringing tail
+    this.tone(ping * 2, 0.16, 'sine', 0.055, ping * 1.84)
+    // transient click + air
+    this.noise(0.012, 0.15, 'bandpass', 4200, 1.5)
+    this.noise(0.05, 0.07, 'highpass', 3000)
   }
 
   /** Body hit: a duller thock with a short click, clearly below the head ping. */
