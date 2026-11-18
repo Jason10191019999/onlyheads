@@ -36,6 +36,15 @@ export default function Results({ result, rank, name, lang, onReplay, onMenu }: 
           <Stat label={t('firstShot')} value={pct(result.firstShotHsRate)} />
           <Stat label={t('avgTtk')} value={result.headshots > 0 ? secs(result.avgTtkMs) : '—'} />
           <Stat label={t('accuracy')} value={result.shots > 0 ? pct(result.accuracy) : '—'} />
+          <Stat
+            label={t('aimError')}
+            value={result.avgAimErrorDeg > 0 ? `${result.avgAimErrorDeg.toFixed(2)}°` : '—'}
+          />
+          <Stat
+            label={t('lowAim')}
+            value={result.avgAimErrorDeg > 0 ? pct(result.lowAimShare) : '—'}
+            tone={result.lowAimShare > 0.6 ? 'bad' : undefined}
+          />
         </div>
 
         <div className="results-actions">

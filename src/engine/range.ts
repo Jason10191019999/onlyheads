@@ -7,6 +7,7 @@ import {
   BALCONY_SLOTS,
   BALCONY_Y,
   COUNTDOWN_MS,
+  AIM_CONE_RAD,
   FOV,
   GRAVITY,
   GROUND_SLOTS,
@@ -33,7 +34,7 @@ import {
   type Slot,
   type WeaponConfig,
 } from '../game/config'
-import { clamp, dirFromYawPitch } from '../game/math'
+import { clamp, dirFromYawPitch, type Vec3 } from '../game/math'
 import { dailySeed, mulberry32, newSeed } from '../game/rng'
 import { RoundScorer } from '../game/scoring'
 import { radPerCount } from '../game/sensitivity'
@@ -189,6 +190,7 @@ export class RangeEngine {
         status: this.status,
         counts: { ground: this.opts.settings.groundCount, balcony: this.opts.settings.balconyCount },
         jumpY: this.jumpY,
+        aimCount: this.scorer.aimCount,
         posX: Number(this.camera.position.x.toFixed(2)),
         posZ: Number(this.camera.position.z.toFixed(2)),
         dummies: this.dummies.map((d) => ({
@@ -545,6 +547,8 @@ export class RangeEngine {
     const aimYaw = this.input.yaw + (this.recoilYaw * Math.PI) / 180
     const spreadRad = (spreadDegrees(this.spreadSpeed) * Math.PI) / 180
     const dir = applySpread(dirFromYawPitch(aimYaw, aimPitch), aimYaw, spreadRad)
+    const aimError = this.measureAim(eye, dir)
+    if (aimError !== null) this.scorer.recordAim(aimError)
 
     // The bullet has left the barrel; now the view kicks.
     const kick = recoilKick(this.shotIndex, this.rng())
@@ -617,6 +621,35 @@ export class RangeEngine {
    * on each side. Both have to be cleared with headshots; the pair is shifted
    * if the spawn point does not have room on both sides.
    */
+
+  /**
+   * Signed vertical angle between the shot and the head of the closest target
+   * (positive = the head was above the crosshair, i.e. the shot went low).
+   */
+  private measureAim(eye: Vec3, dir: Vec3): number | null {
+    const aimPitch = Math.asin(Math.max(-1, Math.min(1, dir.y)))
+    let best: { angle: number; error: number } | null = null
+    for (const dummy of this.dummies) {
+      const head = dummy.headCenter()
+      const dx = head.x - eye.x
+      const dy = head.y - eye.y
+      const dz = head.z - eye.z
+      const len = Math.hypot(dx, dy, dz)
+      if (len < 0.5) continue
+      const nx = dx / len
+      const ny = dy / len
+      const nz = dz / len
+      const cos = Math.min(1, Math.max(-1, nx * dir.x + ny * dir.y + nz * dir.z))
+      const angle = Math.acos(cos)
+      if (angle > AIM_CONE_RAD) continue
+      if (!best || angle < best.angle) {
+        const targetPitch = Math.asin(Math.max(-1, Math.min(1, ny)))
+        best = { angle, error: ((targetPitch - aimPitch) * 180) / Math.PI }
+      }
+    }
+    return best ? best.error : null
+  }
+
   private splitTarget(source: Dummy): void {
     const floor = source.slot.floor
     const z = source.root.position.z
