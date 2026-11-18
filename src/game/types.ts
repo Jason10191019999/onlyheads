@@ -64,6 +64,8 @@ export interface Settings {
   crosshairThickness: number
   /** deterministic seed for the day, so everyone gets the same spawns */
   daily: boolean
+  /** go fullscreen when entering the range */
+  fullscreen: boolean
 }
 
 export interface HudState {

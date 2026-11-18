@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { RangeEngine } from '../engine/range'
 import type { HudState, RoundResult, Settings, WeaponId } from '../game/types'
 import { translator } from '../i18n'
+import { toggleFullscreen } from './fullscreen'
 
 interface Props {
   settings: Settings
@@ -41,6 +42,16 @@ export default function RangeView({ settings, onFinish, onExit }: Props) {
   const [hud, setHud] = useState<HudState>(() => initialState(settings.weapon))
   const [ending, setEnding] = useState<RoundResult | null>(null)
   const t = useMemo(() => translator(settings.lang), [settings.lang])
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.code !== 'KeyF' || event.repeat) return
+      event.preventDefault()
+      void toggleFullscreen()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     const host = hostRef.current

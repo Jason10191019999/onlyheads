@@ -1097,6 +1097,7 @@ button {
 .share-row {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
   margin: 10px 0 4px;
 }
 

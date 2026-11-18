@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   crosshairGap: 3,
   crosshairThickness: 2,
   daily: false,
+  fullscreen: false,
 }
 
 function clampRange(value: unknown, min: number, max: number, fallback: number): number {
@@ -74,6 +75,7 @@ function normalize(raw: Partial<Settings> | undefined): Settings {
     crosshairGap: clampRange(s.crosshairGap, 0, 16, DEFAULT_SETTINGS.crosshairGap),
     crosshairThickness: clampRange(s.crosshairThickness, 1, 6, DEFAULT_SETTINGS.crosshairThickness),
     daily: s.daily === true,
+    fullscreen: s.fullscreen === true,
   }
 }
 

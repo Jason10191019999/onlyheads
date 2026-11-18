@@ -6,6 +6,7 @@ import { translator } from '../i18n'
 import { challengeUrl } from '../game/share'
 import { todayKey } from '../game/rng'
 import { fetchGlobalBoard, globalBoardEnabled, type GlobalEntry } from '../net/board'
+import { enterFullscreen, isFullscreen, toggleFullscreen } from './fullscreen'
 
 interface Props {
   settings: Settings
@@ -21,6 +22,22 @@ const WEAPON_IDS: WeaponId[] = ['vandal', 'sheriff']
 export default function Menu({ settings, onChange, rounds, board, onStart }: Props) {
   const t = useMemo(() => translator(settings.lang), [settings.lang])
   const [copied, setCopied] = useState(false)
+  const [fullScreen, setFullScreen] = useState(isFullscreen)
+  const [installPrompt, setInstallPrompt] = useState<{ prompt: () => Promise<void> } | null>(null)
+
+  useEffect(() => {
+    const onChange = () => setFullScreen(isFullscreen())
+    document.addEventListener('fullscreenchange', onChange)
+    const onPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as unknown as { prompt: () => Promise<void> })
+    }
+    window.addEventListener('beforeinstallprompt', onPrompt)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      window.removeEventListener('beforeinstallprompt', onPrompt)
+    }
+  }, [])
   const [global, setGlobal] = useState<GlobalEntry[] | null>(null)
 
   useEffect(() => {
@@ -352,12 +369,41 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
         )}
 
         <div className="share-row">
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => {
+              void toggleFullscreen()
+              onChange({ fullscreen: !fullScreen })
+            }}
+          >
+            {fullScreen ? t('exitFullscreen') : t('fullscreen')}
+          </button>
+          {installPrompt && (
+            <button
+              type="button"
+              className="ghost"
+              onClick={async () => {
+                await installPrompt.prompt()
+                setInstallPrompt(null)
+              }}
+            >
+              {t('installApp')}
+            </button>
+          )}
           <button type="button" className="ghost" onClick={copyChallenge}>
             {copied ? t('copied') : t('copyChallenge')}
           </button>
         </div>
 
-        <button type="button" className="start" onClick={onStart}>
+        <button
+          type="button"
+          className="start"
+          onClick={async () => {
+            if (settings.fullscreen) await enterFullscreen()
+            onStart()
+          }}
+        >
           {t('start')}
           <span className="start-chevron" aria-hidden>
             ›
