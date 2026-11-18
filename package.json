@@ -1,6 +1,6 @@
 {
   "name": "onlyheads",
-  "description": "ONLYheads — a headshot-only aim trainer that drills headshots and punishes body shots.",
+  "description": "ONLYheads — a training tool built around one skill: landing headshots. 60-second rounds, only headshots score.",
   "private": true,
   "version": "0.1.0",
   "type": "module",

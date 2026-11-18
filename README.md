@@ -4,6 +4,10 @@
 
 打开浏览器就能练:60 秒一局,只有爆头得分;打中身体不扣分,但会把靶子劈成两个,只能用爆头清掉。靶场分两层,一层全身靶、二层只露头肩,还支持自定靶数、移动开关、跳跃和瓦洛兰特 1:1 灵敏度。
 
+**A training tool built around one skill: landing headshots.**
+
+Play it in the browser. Rounds last 60 seconds and only headshots score. Body hits cost no points, but they split a target in two — and those clones only go down to a headshot. Two floors: full-body targets on the ground, head-and-shoulders targets on the balcony. Custom target counts per floor, a movement toggle, jumping, and 1:1 Valorant sensitivity.
+
 非官方练习工具,与 Riot Games 无关。
 
 ## 截图
