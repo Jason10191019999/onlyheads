@@ -141,6 +141,9 @@ export interface DummyOptions {
   isClone?: boolean
   /** deterministic source for phase/relocate timing (daily challenge) */
   random?: () => number
+  /** how far the dummy may wander from its slot, in metres */
+  wanderX?: number
+  wanderZ?: number
 }
 
 export interface Hit {
@@ -169,6 +172,8 @@ export class Dummy {
   private readonly startAt: number
   private readonly moving: boolean
   private readonly phase: number
+  private readonly wanderX: number
+  private readonly wanderZ: number
   private splitAt = 0
   private readonly bornAt: number
   private upperMeshes: THREE.Mesh[] = []
@@ -184,6 +189,8 @@ export class Dummy {
     this.moving = opts.moving
     const rand = opts.random ?? Math.random
     this.phase = rand() * Math.PI * 2
+    this.wanderX = opts.wanderX ?? 1.0
+    this.wanderZ = opts.wanderZ ?? 0.45
     this.targetX = slot.x + opts.jitterX
     this.targetZ = slot.z + opts.jitterZ
     this.startX = slot.hiddenX ?? this.targetX
@@ -417,8 +424,8 @@ export class Dummy {
     if (frozen || !this.moving) return
     const t = now / 1000
     // wander in both axes so targets cannot be pre-aimed on one line
-    this.root.position.x = this.targetX + Math.sin(t * 1.35 + this.phase) * 1.0
-    this.root.position.z = this.targetZ + Math.sin(t * 0.92 + this.phase * 1.6) * 0.45
+    this.root.position.x = this.targetX + Math.sin(t * 1.35 + this.phase) * this.wanderX
+    this.root.position.z = this.targetZ + Math.sin(t * 0.92 + this.phase * 1.6) * this.wanderZ
   }
 
   dispose(): void {

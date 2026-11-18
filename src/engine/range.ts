@@ -514,6 +514,12 @@ export class RangeEngine {
       if (Math.abs(d.root.position.x - x) < MIN_TARGET_GAP) return false
     }
     const moving = this.opts.settings.moving
+    // A dummy standing on a pillar cap must not wander off the edge, or it looks
+    // like it is floating next to the pillar.
+    const onPillar = slot.baseY > BALCONY_Y + 0.5
+    const pillar = onPillar ? PILLARS.find((p) => Math.abs(p.x - slot.x) < 0.05) : undefined
+    const wanderX = pillar ? Math.max(0.1, Math.min(0.9, pillar.w / 2 - 0.24)) : 1.0
+    const wanderZ = onPillar ? 0.28 : 0.45
     const dummy = new Dummy({
       id: this.nextId++,
       slot,
@@ -522,6 +528,8 @@ export class RangeEngine {
       jitterX,
       jitterZ,
       random: this.rng,
+      wanderX,
+      wanderZ,
     })
     this.dummies.push(dummy)
     this.scene.add(dummy.root)
@@ -630,15 +638,18 @@ export class RangeEngine {
     const gap = onPillar ? 0.38 : 0.55
 
     let center = clamp(originX, -12.4, 12.4)
-    const shifts = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4]
-    for (const shift of shifts) {
-      const candidate = clamp(originX + shift, -12.4, 12.4)
-      if (
-        this.isSplitSpotFree(candidate - gap, z, floor, baseY, source) &&
-        this.isSplitSpotFree(candidate + gap, z, floor, baseY, source)
-      ) {
-        center = candidate
-        break
+    // A pillar cap has no room to shift the pair sideways, so twins stay put.
+    if (!onPillar) {
+      const shifts = [0, 0.35, -0.35, 0.7, -0.7, 1.05, -1.05, 1.4, -1.4]
+      for (const shift of shifts) {
+        const candidate = clamp(originX + shift, -12.4, 12.4)
+        if (
+          this.isSplitSpotFree(candidate - gap, z, floor, baseY, source) &&
+          this.isSplitSpotFree(candidate + gap, z, floor, baseY, source)
+        ) {
+          center = candidate
+          break
+        }
       }
     }
 
