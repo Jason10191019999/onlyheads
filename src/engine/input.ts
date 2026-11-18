@@ -24,6 +24,8 @@ export class PointerInput {
   private pendingY = 0
   /** Browsers report a synthetic delta right after locking; ignore that window. */
   private lockedAt = 0
+  /** The first move after locking often carries the cursor recentre delta. */
+  private suppressNext = false
   private readonly element: HTMLElement
   private readonly getRadPerCount: () => number
   private readonly onLockChange: (locked: boolean) => void
@@ -42,6 +44,10 @@ export class PointerInput {
 
   private handleMove = (event: PointerEvent) => {
     if (!this.locked) return
+    if (this.suppressNext) {
+      this.suppressNext = false
+      return
+    }
     // The browser re-centres the cursor on lock and reports it as a delta.
     if (performance.now() - this.lockedAt < 400) return
     this.pendingX += event.movementX || 0
@@ -51,7 +57,10 @@ export class PointerInput {
   private handleLockChange = () => {
     const locked = document.pointerLockElement === this.element
     this.locked = locked
-    if (locked) this.lockedAt = performance.now()
+    if (locked) {
+      this.lockedAt = performance.now()
+      this.suppressNext = true
+    }
     this.pendingX = 0
     this.pendingY = 0
     this.onLockChange(locked)
