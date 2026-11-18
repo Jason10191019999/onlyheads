@@ -10,8 +10,6 @@ export const PLAYER_MAX_X = 11
 export const PLAYER_MIN_Z = -11
 export const PLAYER_MAX_Z = 14
 export const FOV = 103
-/** Shots within this angle of a head count as "aimed at it" for the aim-error stat. */
-export const AIM_CONE_RAD = (8 * Math.PI) / 180
 /** Jump: ~0.75 m high, ~0.6 s in the air, close to Valorant's hop. */
 export const JUMP_SPEED = 5.2
 export const GRAVITY = 18

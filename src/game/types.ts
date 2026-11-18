@@ -24,10 +24,6 @@ export interface RoundResult {
   accuracy: number
   firstShotHsRate: number
   avgTtkMs: number
-  /** mean |vertical aim error| against the target head, degrees */
-  avgAimErrorDeg: number
-  /** share of shots that passed below the head centre */
-  lowAimShare: number
   killsPerMin: number
   durationMs: number
   /** kept for compatibility; rounds always end on the timer now */

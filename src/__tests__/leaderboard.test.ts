@@ -25,8 +25,6 @@ const result = (score: number, at = Date.now()): RoundResult => ({
   accuracy: 1,
   firstShotHsRate: 1,
   avgTtkMs: 100,
-  avgAimErrorDeg: 0.2,
-  lowAimShare: 0.5,
   killsPerMin: 1,
   durationMs: 60_000,
   endReason: 'time',

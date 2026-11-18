@@ -26,9 +26,6 @@ export class RoundScorer {
 
   private ttkSum = 0
   private ttkCount = 0
-  private aimSamples = 0
-  private aimAbsSum = 0
-  private aimLow = 0
 
   constructor(tier: Tier) {
     this.tier = tier
@@ -39,11 +36,6 @@ export class RoundScorer {
     if (!event.isFirstShotOnTarget) return
     this.engagements += 1
     if (event.outcome === 'head') this.firstShotHeads += 1
-  }
-
-  /** how many shots had a target close enough to measure */
-  get aimCount(): number {
-    return this.aimSamples
   }
 
   onHead(event: ShotEvent): number {
@@ -88,16 +80,6 @@ export class RoundScorer {
     this.shots += 1
   }
 
-  /**
-   * `errorDeg` is signed: positive means the shot passed below the head centre.
-   * Sampled on every shot that was aimed at a target at all.
-   */
-  recordAim(errorDeg: number): void {
-    this.aimSamples += 1
-    this.aimAbsSum += Math.abs(errorDeg)
-    if (errorDeg > 0) this.aimLow += 1
-  }
-
   finish(meta: { weapon: WeaponId; durationMs: number }): RoundResult {
     const duration = Math.max(1, meta.durationMs)
     return {
@@ -114,8 +96,6 @@ export class RoundScorer {
         this.shots > 0 ? (this.headshots + this.bodyHits + this.penaltyKills) / this.shots : 0,
       firstShotHsRate: this.engagements > 0 ? this.firstShotHeads / this.engagements : 0,
       avgTtkMs: this.ttkCount > 0 ? this.ttkSum / this.ttkCount : 0,
-      avgAimErrorDeg: this.aimSamples > 0 ? this.aimAbsSum / this.aimSamples : 0,
-      lowAimShare: this.aimSamples > 0 ? this.aimLow / this.aimSamples : 0,
       killsPerMin: (this.headshots / duration) * 60_000,
       durationMs: duration,
       endReason: 'time',
