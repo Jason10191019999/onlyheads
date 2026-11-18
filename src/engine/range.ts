@@ -68,6 +68,8 @@ export class RangeEngine {
   private readonly hitmarker: HTMLDivElement
   private readonly gun: THREE.Group
   private readonly muzzle: THREE.Mesh
+  private readonly gunBaseY: number
+  private readonly gunBaseZ: number
   private readonly resizeObserver: ResizeObserver
 
   private dummies: Dummy[] = []
@@ -136,6 +138,8 @@ export class RangeEngine {
     const viewmodel = this.buildGun()
     this.gun = viewmodel.group
     this.muzzle = viewmodel.muzzle
+    this.gunBaseY = viewmodel.baseY
+    this.gunBaseZ = viewmodel.baseZ
     this.camera.add(this.gun)
 
     this.particles = new Particles(this.scene)
@@ -370,8 +374,8 @@ export class RangeEngine {
 
     this.particles.update(dt)
     this.gunKick *= Math.pow(0.0006, dt)
-    this.gun.position.z = -0.68 + this.gunKick
-    this.gun.position.y = -0.19 - this.gunKick * 0.35
+    this.gun.position.z = this.gunBaseZ + this.gunKick
+    this.gun.position.y = this.gunBaseY - this.gunKick * 0.35
     this.muzzle.visible = this.clock < this.muzzleUntil
     this.emitHud(false)
   }
@@ -829,7 +833,7 @@ export class RangeEngine {
     this.scene.add(rear)
   }
 
-  private buildGun(): { group: THREE.Group; muzzle: THREE.Mesh } {
+  private buildGun(): { group: THREE.Group; muzzle: THREE.Mesh; baseY: number; baseZ: number } {
     const group = new THREE.Group()
     const gunmetal = new THREE.MeshStandardMaterial({
       color: 0x232c36,
@@ -865,19 +869,83 @@ export class RangeEngine {
     })
 
 
+    const wood = new THREE.MeshStandardMaterial({
+      color: 0x4a2b16,
+      emissive: 0x0a0503,
+      emissiveIntensity: 0.7,
+      roughness: 0.72,
+      metalness: 0.08,
+    })
+    const steel = new THREE.MeshStandardMaterial({
+      color: 0x323c49,
+      emissive: 0x060a0f,
+      emissiveIntensity: 1.2,
+      roughness: 0.5,
+      metalness: 0.55,
+    })
+
+    const mkBox = (w: number, h: number, d: number, x: number, y: number, z: number, mat: THREE.Material) => {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat)
+      mesh.position.set(x, y, z)
+      return mesh
+    }
+    const mkCyl = (r: number, len: number, x: number, y: number, z: number, mat: THREE.Material) => {
+      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 14), mat)
+      mesh.rotation.x = Math.PI / 2
+      mesh.position.set(x, y, z)
+      return mesh
+    }
+
     if (this.weaponId === 'sheriff') {
-      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.24, 10), gunmetal)
-      barrel.rotation.x = Math.PI / 2
-      barrel.position.set(0, 0.02, -0.2)
-      const drum = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.075, 10), darker)
-      drum.rotation.x = Math.PI / 2
-      drum.position.set(0, 0.01, -0.06)
-      const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.15, 0.075), darker)
-      grip.position.set(0, -0.09, 0.06)
-      grip.rotation.x = -0.24
-      const dot = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, 0.012), teal)
-      dot.position.set(0, 0.055, -0.18)
-      group.add(barrel, drum, grip, dot)
+      // Sheriff: heavy revolver — vented barrel, fat cylinder, hammer, wood grip
+      const frame = mkBox(0.07, 0.09, 0.17, 0, 0.015, -0.02, steel)
+      const topStrap = mkBox(0.05, 0.022, 0.2, 0, 0.072, -0.08, darker)
+      const barrel = mkBox(0.046, 0.052, 0.3, 0, 0.048, -0.27, steel)
+      const ventRib = mkBox(0.03, 0.014, 0.27, 0, 0.079, -0.26, darker)
+      const muzzleRing = mkCyl(0.027, 0.028, 0, 0.048, -0.425, darker)
+      const cylinder = mkCyl(0.054, 0.088, 0, 0.018, -0.055, steel)
+      const cylinderBand = mkCyl(0.057, 0.012, 0, 0.018, -0.095, darker)
+      const crane = mkBox(0.022, 0.034, 0.09, 0.035, 0.005, -0.06, darker)
+      const hammer = mkBox(0.018, 0.042, 0.028, 0, 0.076, 0.058, darker)
+      hammer.rotation.x = -0.35
+      const rearSight = mkBox(0.03, 0.012, 0.02, 0, 0.087, 0.028, darker)
+      const frontSight = mkBox(0.012, 0.026, 0.016, 0, 0.096, -0.4, darker)
+      const trigger = mkBox(0.011, 0.032, 0.014, 0, -0.036, 0.032, darker)
+      const guard = new THREE.Mesh(new THREE.TorusGeometry(0.032, 0.007, 8, 16), darker)
+      guard.rotation.y = Math.PI / 2
+      guard.position.set(0, -0.038, 0.036)
+      const grip = mkBox(0.058, 0.17, 0.085, 0, -0.095, 0.075, wood)
+      grip.rotation.x = -0.32
+      const gripCap = mkBox(0.05, 0.022, 0.075, 0, -0.175, 0.108, darker)
+      const lanyard = mkBox(0.014, 0.014, 0.014, 0, -0.1, 0.13, teal)
+
+      // two-handed grip
+      const rightHand = mkBox(0.082, 0.145, 0.105, 0.01, -0.135, 0.085, glove)
+      rightHand.rotation.x = -0.3
+      const leftHand = mkBox(0.072, 0.09, 0.1, -0.026, -0.072, 0.012, glove)
+      leftHand.rotation.x = -0.2
+      leftHand.rotation.z = 0.12
+
+      group.add(
+        frame,
+        topStrap,
+        barrel,
+        ventRib,
+        muzzleRing,
+        cylinder,
+        cylinderBand,
+        crane,
+        hammer,
+        rearSight,
+        frontSight,
+        trigger,
+        guard,
+        grip,
+        gripCap,
+        lanyard,
+        rightHand,
+        leftHand,
+      )
     } else {
       // Vandal: long barrel, tall receiver, curved magazine, skeleton stock
       const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.125, 0.32), gunmetal)
@@ -950,19 +1018,28 @@ export class RangeEngine {
       )
     }
 
-    group.position.set(0.32, -0.19, -0.68)
-    group.rotation.set(0.1, 0.42, 0.02)
-    group.scale.setScalar(0.75)
+    const pistol = this.weaponId === 'sheriff'
+    const baseY = pistol ? -0.175 : -0.19
+    const baseZ = pistol ? -0.62 : -0.68
+    if (pistol) {
+      group.position.set(0.3, baseY, baseZ)
+      group.rotation.set(0.05, 0.26, 0.015)
+      group.scale.setScalar(0.72)
+    } else {
+      group.position.set(0.32, baseY, baseZ)
+      group.rotation.set(0.1, 0.42, 0.02)
+      group.scale.setScalar(0.75)
+    }
 
     const muzzle = new THREE.Mesh(
       new THREE.SphereGeometry(0.03, 8, 6),
       new THREE.MeshBasicMaterial({ color: 0xffd27a }),
     )
-    muzzle.position.set(0, 0.02, -0.8)
+    muzzle.position.set(0, pistol ? 0.048 : 0.02, pistol ? -0.45 : -0.8)
     muzzle.visible = false
     group.add(muzzle)
 
-    return { group, muzzle }
+    return { group, muzzle, baseY, baseZ }
   }
 
   private applyCrosshair(): void {
