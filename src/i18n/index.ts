@@ -1,7 +1,7 @@
 import type { Lang } from '../game/types'
 
 const zh = {
-  title: 'ONLY HEADS',
+  title: 'ONLYHEADS',
   tagline: '只爆头得分。打中身体不扣分,但会把靶子劈成两个——它们不给分,只能用爆头清掉。',
   start: '进入靶场',
   continue: '点击继续',
@@ -64,7 +64,7 @@ const zh = {
 export type I18nKey = keyof typeof zh
 
 const en: Record<I18nKey, string> = {
-  title: 'ONLY HEADS',
+  title: 'ONLYHEADS',
   tagline: 'Only headshots score. Body hits cost nothing but split the target in two: the clones pay nothing and only a head clears them.',
   start: 'Enter range',
   continue: 'Click to resume',

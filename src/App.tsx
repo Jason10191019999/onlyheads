@@ -19,7 +19,7 @@ export default function App() {
   useEffect(() => {
     saveSettings(settings)
     document.title =
-      settings.lang === 'en' ? 'OnlyHeads · headshot-only aim range' : 'OnlyHeads · 只练爆头'
+      settings.lang === 'en' ? 'ONLYheads · headshot-only aim trainer' : 'ONLYheads · 专注爆头的练枪软件'
   }, [settings])
 
   const patch = (next: Partial<Settings>) => setSettings((prev) => ({ ...prev, ...next }))

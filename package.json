@@ -1,5 +1,6 @@
 {
   "name": "onlyheads",
+  "description": "ONLYheads — a headshot-only aim trainer that drills headshots and punishes body shots.",
   "private": true,
   "version": "0.1.0",
   "type": "module",
