@@ -4,7 +4,7 @@ $ErrorActionPreference = 'Stop'
 
 $url = 'https://jason10191019999.github.io/onlyheads/'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$icon = Join-Path $root 'assets\icon.ico'
+$icon = Join-Path $root 'assets\icon-bot.ico'
 
 $candidates = @(
   "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
