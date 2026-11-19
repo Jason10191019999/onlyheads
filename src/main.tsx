@@ -9,8 +9,19 @@ if (root) createRoot(root).render(<App />)
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const sw = new URL('sw.js', document.baseURI).toString()
-    navigator.serviceWorker.register(sw).catch(() => {
-      /* offline mode is a bonus, never a blocker */
-    })
+    navigator.serviceWorker
+      .register(sw)
+      .then(() => {
+        // A later build activated: reload once so the window shows it.
+        let reloading = false
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (reloading || !navigator.serviceWorker.controller) return
+          reloading = true
+          location.reload()
+        })
+      })
+      .catch(() => {
+        /* offline mode is a bonus, never a blocker */
+      })
   })
 }
