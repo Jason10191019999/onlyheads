@@ -26,6 +26,11 @@ if (-not $browser) {
 $desktop = [Environment]::GetFolderPath('Desktop')
 $target = Join-Path $desktop 'ONLYheads.lnk'
 
+# Explorer reliably renders icons that sit next to the shortcut, so copy it there.
+$iconOnDesktop = Join-Path $desktop 'ONLYheads.ico'
+if (Test-Path $icon) { Copy-Item $icon $iconOnDesktop -Force }
+if (Test-Path $iconOnDesktop) { $icon = $iconOnDesktop }
+
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($target)
 $shortcut.TargetPath = $browser
