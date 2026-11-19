@@ -5,4 +5,5 @@ export default defineConfig({
   plugins: [react()],
   server: { port: 5173 },
   base: './',
+  define: { __BUILD_STAMP__: JSON.stringify(new Date().toISOString()) },
 })

@@ -429,7 +429,9 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
           )}
         </section>
 
-        <footer className="foot">{t('footer')}</footer>
+        <footer className="foot">
+          {t('footer')} · build {__BUILD_STAMP__.slice(0, 16).replace('T', ' ')}
+        </footer>
       </div>
     </div>
   )
