@@ -1,5 +1,5 @@
 /* OnlyHeads service worker: app shell cached, hashed assets cached on first use. */
-const CACHE = 'onlyheads-v1'
+const CACHE = 'onlyheads-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

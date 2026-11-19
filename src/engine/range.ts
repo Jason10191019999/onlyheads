@@ -182,7 +182,11 @@ export class RangeEngine {
     this.resizeObserver.observe(this.container)
     this.handleResize()
 
-    if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
+    if (
+      location.hostname === '127.0.0.1' ||
+      location.hostname === 'localhost' ||
+      new URLSearchParams(location.search).has('debug')
+    ) {
       ;(window as unknown as Record<string, unknown>).__ohDebug = () => ({
         yawDeg: (this.input.yaw * 180) / Math.PI,
         pitchDeg: (this.input.pitch * 180) / Math.PI,
