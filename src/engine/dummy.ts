@@ -5,8 +5,6 @@ import {
   HEAD_CENTER_Y,
   HEAD_RADIUS,
   RAIL_TOP,
-  RELOCATE_MAX_MS,
-  RELOCATE_MIN_MS,
   WALK_OUT_MS,
   type Slot,
 } from '../game/config'
@@ -155,8 +153,6 @@ export class Dummy {
   readonly id: number
   readonly slot: Slot
   readonly isClone: boolean
-  /** when a normal target jumps to a new spot, 0 for clones */
-  relocateAt = 0
   private bodyDamage = 0
   private flashAt = -1e9
   readonly root = new THREE.Group()
@@ -209,11 +205,7 @@ export class Dummy {
     this.root.add(this.upper, this.lower)
     this.build(a)
 
-    if (this.isClone) {
-      this.tintAsPenalty()
-    } else {
-      this.relocateAt = now + RELOCATE_MIN_MS + rand() * (RELOCATE_MAX_MS - RELOCATE_MIN_MS)
-    }
+    if (this.isClone) this.tintAsPenalty()
   }
 
   /** Duplicates are painted red so it is obvious they must be cleared. */

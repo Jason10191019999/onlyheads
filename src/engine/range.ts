@@ -359,12 +359,6 @@ export class RangeEngine {
     for (const d of this.dummies) d.update(this.clock, frozen)
 
     if (this.status === 'playing') {
-      for (const d of [...this.dummies]) {
-        if (!d.isClone && this.clock >= d.relocateAt) this.relocate(d)
-      }
-    }
-
-    if (this.status === 'playing') {
       if (this.triggerDown && this.weaponCfg.automatic) this.fire()
       if (this.clock >= this.nextSpawnAt) {
         this.nextSpawnAt = this.clock + SPAWN_TICK_MS
@@ -485,24 +479,6 @@ export class RangeEngine {
     }
   }
 
-
-  /** Normal targets hop to a free spot on their floor so the range keeps moving. */
-  private relocate(dummy: Dummy): void {
-    const slots = dummy.slot.floor === 0 ? GROUND_SLOTS : BALCONY_SLOTS
-    const taken = new Set(this.dummies.map((d) => d.slot.id))
-    const free = slots.filter(
-      (s) => s.id !== dummy.slot.id && !taken.has(s.id) && (this.cooldown.get(s.id) ?? 0) <= this.clock,
-    )
-    if (free.length === 0) {
-      dummy.relocateAt = this.clock + 1200
-      return
-    }
-    const slot = free[Math.floor(this.rng() * free.length)]
-    this.dummies = this.dummies.filter((d) => d !== dummy)
-    this.cooldown.set(dummy.slot.id, this.clock + 600)
-    dummy.dispose()
-    this.trySpawn(slot, this.clock, true)
-  }
 
   private trySpawn(slot: Slot, now: number, silent = false): boolean {
     const tight = slot.baseY > BALCONY_Y + 0.1 || slot.z > -6.6

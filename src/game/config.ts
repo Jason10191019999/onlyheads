@@ -25,10 +25,6 @@ export const BALCONY_HEAD_Y = BALCONY_Y + HEAD_CENTER_Y
 /** Timing */
 export const ROUND_MS = 60_000
 export const COUNTDOWN_MS = 3_000
-/** Normal targets relocate on their own so the range keeps changing. */
-export const RELOCATE_MIN_MS = 3_500
-export const RELOCATE_MAX_MS = 6_500
-
 /** Body hits it takes to clear a penalty clone. Headshots always kill in one. */
 export const CLONE_BODY_HITS = 4
 export const RESPAWN_MS = 600
