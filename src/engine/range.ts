@@ -28,7 +28,6 @@ import {
   ROUND_MS,
   SPAWN_JITTER_X,
   SPAWN_JITTER_Z,
-  SPAWN_TICK_MS,
   WEAPONS,
   type Slot,
   type WeaponConfig,
@@ -84,7 +83,8 @@ export class RangeEngine {
   private lastBeep = 0
   private lastFrame = 0
   private raf = 0
-  private nextSpawnAt = 0
+  /** one entry per killed target, spawned again after RESPOND_MS */
+  private readonly respawns: Array<{ floor: 0 | 1; at: number }> = []
   private lastHudAt = 0
   private reloadUntil = 0
   private nextFireAt = 0
@@ -264,7 +264,7 @@ export class RangeEngine {
     this.input.reset()
     this.scorer.bank = 0
     this.nextFireAt = 0
-    this.nextSpawnAt = 0
+    this.respawns.length = 0
     this.recoilPitch = 0
     this.recoilYaw = 0
     this.shotIndex = 0
@@ -348,6 +348,8 @@ export class RangeEngine {
         this.countdownLeft = 0
         this.audio.start()
         this.emitHud(true)
+      } else {
+        this.fillTargets(this.clock)
       }
     } else {
       this.elapsed += dt * 1000
@@ -364,10 +366,7 @@ export class RangeEngine {
 
     if (this.status === 'playing') {
       if (this.triggerDown && this.weaponCfg.automatic) this.fire()
-      if (this.clock >= this.nextSpawnAt) {
-        this.nextSpawnAt = this.clock + SPAWN_TICK_MS
-        this.fillTargets(this.clock)
-      }
+      this.processRespawns(this.clock)
     }
 
     this.particles.update(dt)
@@ -450,8 +449,40 @@ export class RangeEngine {
 
   private aliveCount(floor: 0 | 1): number {
     let n = 0
-    for (const d of this.dummies) if (d.slot.floor === floor) n += 1
+    for (const d of this.dummies) if (d.slot.floor === floor && !d.isClone) n += 1
     return n
+  }
+
+
+  /** A real target died: schedule exactly one replacement on its floor. */
+  private queueRespawn(floor: 0 | 1): void {
+    if (this.respawns.length > 40) return
+    this.respawns.push({ floor, at: this.clock + RESPAWN_MS })
+  }
+
+  /** Spawns replacements whose delay elapsed. Never adds extra targets. */
+  private processRespawns(now: number): void {
+    for (let i = this.respawns.length - 1; i >= 0; i -= 1) {
+      const job = this.respawns[i]
+      if (now < job.at) continue
+      if (this.spawnOnFloor(job.floor, now)) this.respawns.splice(i, 1)
+    }
+  }
+
+  private spawnOnFloor(floor: 0 | 1, now: number): boolean {
+    const slots = floor === 0 ? GROUND_SLOTS : BALCONY_SLOTS
+    const used = new Set(this.dummies.map((d) => d.slot.id))
+    const free = slots.filter((s) => !used.has(s.id) && (this.cooldown.get(s.id) ?? 0) <= now)
+    for (let i = free.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(this.rng() * (i + 1))
+      const tmp = free[i]
+      free[i] = free[j]
+      free[j] = tmp
+    }
+    for (const slot of free) {
+      if (this.trySpawn(slot, now, true)) return true
+    }
+    return false
   }
 
   private fillTargets(now: number): void {
@@ -574,7 +605,10 @@ export class RangeEngine {
         this.flashHitmarker('head')
         this.showPoints(points)
       }
+      const wasReal = !target.isClone
+      const floor = target.slot.floor
       this.removeDummy(target)
+      if (wasReal) this.queueRespawn(floor)
     } else if (outcome === 'body' && target) {
       this.audio.body()
       this.flashHitmarker('body')

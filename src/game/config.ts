@@ -30,7 +30,6 @@ export const CLONE_BODY_HITS = 4
 export const RESPAWN_MS = 600
 export const BROKEN_MS = 600
 export const WALK_OUT_MS = 350
-export const SPAWN_TICK_MS = 180
 
 /** Randomisation so the range never looks like a grid */
 export const SPAWN_JITTER_X = 0.5
