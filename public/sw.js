@@ -1,5 +1,5 @@
 /* OnlyHeads service worker: app shell cached, hashed assets cached on first use. */
-const CACHE = 'onlyheads-v2'
+const CACHE = 'onlyheads-v3'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -28,7 +28,9 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      // GitHub Pages caches index.html for ten minutes; bypass it so a new
+      // deploy shows up on the next launch.
+      fetch(request, { cache: 'no-store' })
         .then((response) => {
           const copy = response.clone()
           caches.open(CACHE).then((cache) => cache.put('./index.html', copy)).catch(() => {})
