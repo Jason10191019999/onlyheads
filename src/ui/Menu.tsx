@@ -6,6 +6,8 @@ import { translator } from '../i18n'
 import { challengeUrl } from '../game/share'
 import { todayKey } from '../game/rng'
 import { fetchGlobalBoard, globalBoardEnabled, type GlobalEntry } from '../net/board'
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 import { enterFullscreen, isFullscreen, toggleFullscreen } from './fullscreen'
 
 interface Props {
@@ -24,6 +26,8 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
   const [copied, setCopied] = useState(false)
   const [fullScreen, setFullScreen] = useState(isFullscreen)
   const [installPrompt, setInstallPrompt] = useState<{ prompt: () => Promise<void> } | null>(null)
+  const [sensDraft, setSensDraft] = useState<string | null>(null)
+  const [dpiDraft, setDpiDraft] = useState<string | null>(null)
 
   useEffect(() => {
     const onChange = () => setFullScreen(isFullscreen())
@@ -189,8 +193,19 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
                   step={0.01}
                   min={0.1}
                   max={10}
-                  value={settings.sens}
-                  onChange={(event) => onChange({ sens: Number(event.target.value) })}
+                  value={sensDraft ?? String(settings.sens)}
+                  onFocus={() => setSensDraft('')}
+                  onChange={(event) => {
+                    const raw = event.target.value
+                    setSensDraft(raw)
+                    const next = Number(raw)
+                    if (raw !== '' && Number.isFinite(next) && next > 0) onChange({ sens: next })
+                  }}
+                  onBlur={() => {
+                    const next = Number(sensDraft)
+                    onChange({ sens: clamp(Number.isFinite(next) && next > 0 ? next : settings.sens, 0.1, 10) })
+                    setSensDraft(null)
+                  }}
                 />
               </div>
               <div className="field">
@@ -202,8 +217,19 @@ export default function Menu({ settings, onChange, rounds, board, onStart }: Pro
                   step={50}
                   min={100}
                   max={6400}
-                  value={settings.dpi}
-                  onChange={(event) => onChange({ dpi: Number(event.target.value) })}
+                  value={dpiDraft ?? String(settings.dpi)}
+                  onFocus={() => setDpiDraft('')}
+                  onChange={(event) => {
+                    const raw = event.target.value
+                    setDpiDraft(raw)
+                    const next = Number(raw)
+                    if (raw !== '' && Number.isFinite(next) && next > 0) onChange({ dpi: next })
+                  }}
+                  onBlur={() => {
+                    const next = Number(dpiDraft)
+                    onChange({ dpi: clamp(Number.isFinite(next) && next > 0 ? next : settings.dpi, 100, 6400) })
+                    setDpiDraft(null)
+                  }}
                 />
               </div>
               <div className="readout">
